@@ -7,7 +7,7 @@ const items = [
   { title: "대시보드", url: "/dashboard", icon: LayoutDashboard },
   { title: "키워드 관리", url: "/keywords", icon: Tags },
   { title: "탐지 결과", url: "/detections", icon: Search },
-  { title: "실무자 관리", url: "/users", icon: Users },
+  { title: "실무자 관리", url: "/members", icon: Users },
 ] as const;
 
 export function AppSidebar() {
