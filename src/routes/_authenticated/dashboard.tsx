@@ -7,11 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-
-const SITES = ["네이버 블로그", "디시인사이드", "유튜브", "트위터", "에브리타임"] as const;
-const rand = (len: number) =>
-  String(Math.floor(Math.random() * 10 ** len)).padStart(len, "0");
-const pick = <T,>(arr: readonly T[]) => arr[Math.floor(Math.random() * arr.length)];
+import { runRssCrawl } from "@/lib/rss-crawler";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: DashboardPage,
@@ -62,35 +58,7 @@ function DashboardPage() {
   });
 
   const detectMut = useMutation({
-    mutationFn: async () => {
-      const { data: kws, error } = await supabase
-        .from("keywords")
-        .select("keyword")
-        .eq("is_active", true);
-      if (error) throw error;
-      if (!kws || kws.length === 0) {
-        throw new Error("NO_ACTIVE_KEYWORDS");
-      }
-      const rows = kws.flatMap((k) =>
-        Array.from({ length: 2 }, () => {
-          const site = pick(SITES);
-          return {
-            site_name: site,
-            title: `[${site}] ${k.keyword} 관련 게시글 - ${rand(4)}`,
-            content: `${k.keyword}에 관한 내용이 포함된 게시글입니다. 해당 내용은 검토가 필요합니다.`,
-            url: `https://example.com/post/${rand(6)}`,
-            author_id: `user_${rand(4)}`,
-            matched_keyword: k.keyword,
-            keyword: k.keyword,
-            status: "pending",
-            detected_at: new Date().toISOString(),
-          };
-        }),
-      );
-      const { error: insErr } = await supabase.from("crawled_posts").insert(rows);
-      if (insErr) throw insErr;
-      return rows.length;
-    },
+    mutationFn: () => runRssCrawl(),
     onSuccess: (count) => {
       toast.success(`탐지 완료 — 총 ${count}건이 저장되었습니다`);
       qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
