@@ -52,19 +52,25 @@ export type Database = {
           created_at: string
           created_by: string | null
           id: string
+          is_active: boolean
           keyword: string
+          severity: string
         }
         Insert: {
           created_at?: string
           created_by?: string | null
           id?: string
+          is_active?: boolean
           keyword: string
+          severity?: string
         }
         Update: {
           created_at?: string
           created_by?: string | null
           id?: string
+          is_active?: boolean
           keyword?: string
+          severity?: string
         }
         Relationships: []
       }
