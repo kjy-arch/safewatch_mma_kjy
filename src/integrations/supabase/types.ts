@@ -14,7 +14,60 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      crawled_posts: {
+        Row: {
+          created_at: string
+          detected_at: string
+          id: string
+          keyword: string
+          site_name: string
+          status: string
+          title: string
+          url: string | null
+        }
+        Insert: {
+          created_at?: string
+          detected_at?: string
+          id?: string
+          keyword: string
+          site_name: string
+          status?: string
+          title: string
+          url?: string | null
+        }
+        Update: {
+          created_at?: string
+          detected_at?: string
+          id?: string
+          keyword?: string
+          site_name?: string
+          status?: string
+          title?: string
+          url?: string | null
+        }
+        Relationships: []
+      }
+      keywords: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          keyword: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          keyword: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          keyword?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
