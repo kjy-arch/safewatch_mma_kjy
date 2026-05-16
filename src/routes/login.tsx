@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { ShieldCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,7 +15,6 @@ export const Route = createFileRoute("/login")({
 function LoginPage() {
   const navigate = useNavigate();
   const { session } = useAuth();
-  const [mode, setMode] = useState<"login" | "signup">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -28,21 +27,10 @@ function LoginPage() {
     e.preventDefault();
     setSubmitting(true);
     try {
-      if (mode === "login") {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-        toast.success("로그인되었습니다");
-        navigate({ to: "/dashboard", replace: true });
-      } else {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: { emailRedirectTo: window.location.origin },
-        });
-        if (error) throw error;
-        toast.success("계정이 생성되었습니다. 로그인하세요.");
-        setMode("login");
-      }
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      toast.success("로그인되었습니다");
+      navigate({ to: "/dashboard", replace: true });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "오류가 발생했습니다");
     } finally {
@@ -58,9 +46,7 @@ function LoginPage() {
             <ShieldCheck className="h-6 w-6 text-primary" />
           </div>
           <h1 className="text-xl font-semibold">SafeWatch</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            공공기관 실무자 모니터링 시스템
-          </p>
+          <p className="mt-1 text-sm text-muted-foreground">공공기관 실무자 모니터링 시스템</p>
         </div>
 
         <form onSubmit={onSubmit} className="space-y-4">
@@ -73,17 +59,16 @@ function LoginPage() {
             <Input id="password" type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} />
           </div>
           <Button type="submit" className="w-full" disabled={submitting}>
-            {submitting ? "처리 중..." : mode === "login" ? "로그인" : "계정 생성"}
+            {submitting ? "처리 중..." : "로그인"}
           </Button>
         </form>
 
-        <button
-          type="button"
-          onClick={() => setMode(mode === "login" ? "signup" : "login")}
-          className="mt-4 w-full text-center text-xs text-muted-foreground hover:text-foreground"
+        <Link
+          to="/signup"
+          className="mt-4 block w-full text-center text-xs text-muted-foreground hover:text-foreground"
         >
-          {mode === "login" ? "계정이 없으신가요? 회원가입" : "이미 계정이 있으신가요? 로그인"}
-        </button>
+          계정이 없으신가요? 회원가입
+        </Link>
       </div>
     </div>
   );
