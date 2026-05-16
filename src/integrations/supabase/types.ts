@@ -16,30 +16,39 @@ export type Database = {
     Tables: {
       crawled_posts: {
         Row: {
+          author_id: string | null
+          content: string | null
           created_at: string
           detected_at: string
           id: string
           keyword: string
+          matched_keyword: string | null
           site_name: string
           status: string
           title: string
           url: string | null
         }
         Insert: {
+          author_id?: string | null
+          content?: string | null
           created_at?: string
           detected_at?: string
           id?: string
           keyword: string
+          matched_keyword?: string | null
           site_name: string
           status?: string
           title: string
           url?: string | null
         }
         Update: {
+          author_id?: string | null
+          content?: string | null
           created_at?: string
           detected_at?: string
           id?: string
           keyword?: string
+          matched_keyword?: string | null
           site_name?: string
           status?: string
           title?: string
