@@ -1,10 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { Activity, Tags, Clock, CheckCircle2 } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Activity, Tags, Clock, CheckCircle2, Loader2, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { toast } from "sonner";
+
+const SITES = ["네이버 블로그", "디시인사이드", "유튜브", "트위터", "에브리타임"] as const;
+const rand = (len: number) =>
+  String(Math.floor(Math.random() * 10 ** len)).padStart(len, "0");
+const pick = <T,>(arr: readonly T[]) => arr[Math.floor(Math.random() * arr.length)];
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: DashboardPage,
