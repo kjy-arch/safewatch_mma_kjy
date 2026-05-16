@@ -55,7 +55,7 @@
 
 ## 🚀 서비스 URL
 
-- **배포 주소** : `https://SafeWatch_mma_kjy.lovable.app`
+- **배포 주소** : `https://safe-watch-hq.lovable.app`
 - **GitHub** : `https://github.com/kjy-arch/safewatch_mma_kjy`
 
 ---
