@@ -1,10 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { Activity, Tags, Clock, CheckCircle2 } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Activity, Tags, Clock, CheckCircle2, Loader2, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { toast } from "sonner";
+
+const SITES = ["네이버 블로그", "디시인사이드", "유튜브", "트위터", "에브리타임"] as const;
+const rand = (len: number) =>
+  String(Math.floor(Math.random() * 10 ** len)).padStart(len, "0");
+const pick = <T,>(arr: readonly T[]) => arr[Math.floor(Math.random() * arr.length)];
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: DashboardPage,
@@ -17,6 +24,8 @@ function statusBadge(status: string) {
 }
 
 function DashboardPage() {
+  const qc = useQueryClient();
+
   const { data: stats } = useQuery({
     queryKey: ["dashboard-stats"],
     queryFn: async () => {
@@ -52,6 +61,51 @@ function DashboardPage() {
     },
   });
 
+  const detectMut = useMutation({
+    mutationFn: async () => {
+      const { data: kws, error } = await supabase
+        .from("keywords")
+        .select("keyword")
+        .eq("is_active", true);
+      if (error) throw error;
+      if (!kws || kws.length === 0) {
+        throw new Error("NO_ACTIVE_KEYWORDS");
+      }
+      const rows = kws.flatMap((k) =>
+        Array.from({ length: 2 }, () => {
+          const site = pick(SITES);
+          return {
+            site_name: site,
+            title: `[${site}] ${k.keyword} 관련 게시글 - ${rand(4)}`,
+            content: `${k.keyword}에 관한 내용이 포함된 게시글입니다. 해당 내용은 검토가 필요합니다.`,
+            url: `https://example.com/post/${rand(6)}`,
+            author_id: `user_${rand(4)}`,
+            matched_keyword: k.keyword,
+            keyword: k.keyword,
+            status: "pending",
+            detected_at: new Date().toISOString(),
+          };
+        }),
+      );
+      const { error: insErr } = await supabase.from("crawled_posts").insert(rows);
+      if (insErr) throw insErr;
+      return rows.length;
+    },
+    onSuccess: (count) => {
+      toast.success(`탐지 완료 — 총 ${count}건이 저장되었습니다`);
+      qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      qc.invalidateQueries({ queryKey: ["recent-posts"] });
+      qc.invalidateQueries({ queryKey: ["crawled_posts"] });
+    },
+    onError: (e) => {
+      if (e instanceof Error && e.message === "NO_ACTIVE_KEYWORDS") {
+        toast.error("등록된 활성 키워드가 없습니다");
+      } else {
+        toast.error(e instanceof Error ? e.message : "오류가 발생했습니다");
+      }
+    },
+  });
+
   const cards = [
     { label: "오늘 탐지 건수", value: stats?.today ?? 0, icon: Activity, color: "text-blue-600 bg-blue-50" },
     { label: "등록 키워드 수", value: stats?.keywords ?? 0, icon: Tags, color: "text-violet-600 bg-violet-50" },
@@ -61,9 +115,23 @@ function DashboardPage() {
 
   return (
     <div className="space-y-6 p-8">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">대시보드</h1>
-        <p className="mt-1 text-sm text-muted-foreground">모니터링 현황을 한눈에 확인하세요</p>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">대시보드</h1>
+          <p className="mt-1 text-sm text-muted-foreground">모니터링 현황을 한눈에 확인하세요</p>
+        </div>
+        <Button
+          onClick={() => detectMut.mutate()}
+          disabled={detectMut.isPending}
+          className="sm:self-start"
+        >
+          {detectMut.isPending ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <Search className="mr-2 h-4 w-4" />
+          )}
+          {detectMut.isPending ? "탐지 중..." : "탐지 실행"}
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
