@@ -24,6 +24,8 @@ function statusBadge(status: string) {
 }
 
 function DashboardPage() {
+  const qc = useQueryClient();
+
   const { data: stats } = useQuery({
     queryKey: ["dashboard-stats"],
     queryFn: async () => {
